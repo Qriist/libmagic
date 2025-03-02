@@ -1,0 +1,19 @@
+{
+    "author": {
+        "email": "Qriist+libmagic@gmail.com",
+        "name": "Qriist",
+        "website": ""
+    },
+    "bugs": "https://github.com/Qriist/libmagic/issues",
+    "dependencies": {},
+    "description": "Barebones wrapper for libmagic, mainly used for determining MIME tags.",
+    "keywords": [
+        "magic",
+        "mime"
+    ],
+    "license": "",
+    "main": "libmagic.ahk",
+    "name": "libmagic",
+    "repository": "Qriist/libmagic",
+    "version": "0.80.0"
+}
