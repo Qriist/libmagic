@@ -39,7 +39,7 @@ class libmagic {
                 return this.magic_file(magic_cookie, filepath)
             case "Buffer":
                 return this.magic_buffer(magic_cookie, input)
-            case "String", "Integer":
+            case "String", "Integer", "Float":
                 ; Calculate required size and allocate a buffer.
                 buf := Buffer(StrPut(input))
                 ; Copy or convert the string.
