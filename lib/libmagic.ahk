@@ -1,5 +1,6 @@
 ﻿#Requires AutoHotkey v2.0
 class libmagic {
+    static _RefCount := 0
     __New(dllPath?, magicPath?) {
         ;find the installed files
         Critical "On"
@@ -17,6 +18,7 @@ class libmagic {
         SplitPath(this.dllPath, , &dllDir)
         SetWorkingDir(dllDir)
         this.dllHandle := DllCall("LoadLibrary", "Str", this.dllPath, "Ptr")
+        libmagic._RefCount += 1
         Critical "Off"
 
         ;prepare handles
@@ -31,7 +33,7 @@ class libmagic {
         OnExit (*) => this._cleanup()
     }
     magic(input, magic_cookie := this.magicHandle) {
-        Switch Type(input) {
+        switch Type(input) {
             case "File":
                 filepath := this._GetFilePathFromFileObject(input)
                 return this.magic_file(magic_cookie, filepath)
@@ -56,11 +58,15 @@ class libmagic {
         this.cleanup()
     }
     Cleanup() {
+        libmagic._RefCount -= 1
+        if libmagic._RefCount
+            return
         this.magic_close(this.magicHandle)
         this.magic_close(this.mimeHandle)
     }
     _GetFilePathFromFileObject(FileObject) {
-        static GetFinalPathNameByHandleW := DllCall("Kernel32\GetProcAddress", "Ptr", DllCall("Kernel32\GetModuleHandle", "Str", "Kernel32", "Ptr"), "AStr", "GetFinalPathNameByHandleW", "Ptr")
+        static GetFinalPathNameByHandleW := DllCall("Kernel32\GetProcAddress", "Ptr", DllCall("Kernel32\GetModuleHandle", "Str", "Kernel32",
+            "Ptr"), "AStr", "GetFinalPathNameByHandleW", "Ptr")
 
         ; Initialize a buffer to receive the file path
         static bufSize := 65536    ;64kb to accomodate long path names in UTF-16
@@ -74,14 +80,14 @@ class libmagic {
             , "UInt", 0          ; Flags (0 for default behavior)
             , "UInt")            ; Return length of the file path
 
-        if (len == 0 || len > bufSize)
+        if(len == 0 || len > bufSize)
             throw Error("Failed to retrieve file path or insufficient buffer size", A_LastError)
 
         ; Return the result as a string
         return StrGet(buf, "UTF-16")
     }
     _findArisInstallDir(user, packageName) { ;dynamically finds a local versioned Aris installation
-        If DirExist(A_ScriptDir "\lib\Aris\" user) ;"top level" install
+        if DirExist(A_ScriptDir "\lib\Aris\" user) ;"top level" install
             packageDir := A_ScriptDir "\lib\Aris\" user
         else if DirExist(A_ScriptDir "\..\lib\Aris\" user) ;script one level down
             packageDir := A_ScriptDir "\..\lib\Aris\" user
